@@ -1,5 +1,7 @@
 package org.prgrms.kdt.voucher;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
@@ -10,7 +12,7 @@ public class VoucherService {
 
     private final VoucherRepository voucherRepository;
 
-    public VoucherService(VoucherRepository voucherRepository) {
+    public VoucherService(@Qualifier("memoryVoucher") VoucherRepository voucherRepository) {
         this.voucherRepository = voucherRepository;
     }
 

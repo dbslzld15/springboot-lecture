@@ -5,6 +5,10 @@ import org.prgrms.kdt.AppConfiguration;
 import org.prgrms.kdt.voucher.FixedAmountVoucher;
 import org.prgrms.kdt.voucher.Voucher;
 import org.prgrms.kdt.voucher.VoucherRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -18,11 +22,12 @@ class OrderTest {
 
     @Test
     public void 바우처를_통해_주문생성() throws Exception {
-        ApplicationContext ac = new AnnotationConfigApplicationContext(AppConfiguration.class);
+        AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfiguration.class);
         UUID customerId = UUID.randomUUID();
 
+        VoucherRepository voucherRepository = BeanFactoryAnnotationUtils.qualifiedBeanOfType(ac.getBeanFactory(), VoucherRepository.class, "memoryVoucher");
         Voucher fixedAmountVoucher = new FixedAmountVoucher(UUID.randomUUID(), 10L); //고정 할인
-        VoucherRepository voucherRepository = ac.getBean(VoucherRepository.class);
+
         Voucher voucher = voucherRepository.insert(fixedAmountVoucher);
 
         OrderService orderService = ac.getBean(OrderService.class);
