@@ -1,23 +1,24 @@
 package org.prgrms.kdt.order;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.prgrms.kdt.AppConfiguration;
 import org.prgrms.kdt.voucher.FixedAmountVoucher;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class OrderTest {
 
     @Test
     public void 바우처를_통해_주문생성() throws Exception {
+        AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfiguration.class);
+
         UUID customerId = UUID.randomUUID();
-        OrderContext orderContext = new OrderContext();
-        OrderService orderService = orderContext.orderService();
+        OrderService orderService = ac.getBean(OrderService.class);
         List<OrderItem> orderItems = new ArrayList<>() {{
             add(new OrderItem(UUID.randomUUID(), 100L, 1));
         }};
