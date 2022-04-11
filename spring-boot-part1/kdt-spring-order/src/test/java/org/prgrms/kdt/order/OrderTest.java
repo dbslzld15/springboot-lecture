@@ -5,14 +5,14 @@ import org.prgrms.kdt.AppConfiguration;
 import org.prgrms.kdt.voucher.FixedAmountVoucher;
 import org.prgrms.kdt.voucher.Voucher;
 import org.prgrms.kdt.voucher.VoucherRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +22,9 @@ class OrderTest {
 
     @Test
     public void 바우처를_통해_주문생성() throws Exception {
+        Logger logger = LoggerFactory.getLogger(OrderTest.class);
+
+
         AnnotationConfigApplicationContext ac = new AnnotationConfigApplicationContext(AppConfiguration.class);
         UUID customerId = UUID.randomUUID();
 
@@ -40,6 +43,19 @@ class OrderTest {
 
         Order order2 = orderService.createOrder(customerId, orderItems, voucher.getVoucherId());
         assertThat(order2.totalAmount()).isEqualTo(90L);
+    }
+
+    @Test
+    public void 박우진() throws Exception {
+        //given
+        List<String> answer = new ArrayList<>();
+
+        String[] dir = {"E", "S", "W", "N"};
+        System.out.println(Arrays.asList(dir).indexOf("E"));
+
+        //when
+
+        //then
     }
 
 }
