@@ -1,6 +1,7 @@
 package org.prgrms.kdt.voucher;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
-@Qualifier("memoryVoucher") // 조회 대상 빈이 2개일 경우 @Qualifier, @Primary 사용
+@Profile("test") // 조회 대상 빈이 2개일 경우 @Qualifier, @Primary 사용
 public class MemoryVoucherRepository implements VoucherRepository{
     private final Map<UUID, Voucher> storage = new ConcurrentHashMap<>();
 
