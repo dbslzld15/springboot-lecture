@@ -21,17 +21,15 @@ public class CustomerJdbcTemplateRepository implements CustomerRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerJdbcTemplateRepository.class);
 
-    private final DataSource dataSource;
     private final JdbcTemplate jdbcTemplate;
 
-    public CustomerJdbcTemplateRepository(DataSource dataSource, JdbcTemplate jdbcTemplate) {
-        this.dataSource = dataSource;
+    public CustomerJdbcTemplateRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public Customer insert(Customer customer) {
-        int update = jdbcTemplate.update("insert into customers(customer_id, name, email, created_at) values (UUID_TO_BIN(?), ?, ?, ?)",
+        int update = jdbcTemplate.update("insert into customers(customer_id, name, email, created_at) values (UNHEX(REPLACE(?, '-', '')), ?, ?, ?)",
                 customer.getCustomerId().toString().getBytes(),
                 customer.getName(),
                 customer.getEmail(),
@@ -44,7 +42,7 @@ public class CustomerJdbcTemplateRepository implements CustomerRepository {
 
     @Override
     public Customer update(Customer customer) {
-        int update = jdbcTemplate.update("UPDATE customers SET name = ?, email = ?, last_login_at = ? WHERE customer_id = UUID_TO_BIN(?)",
+        int update = jdbcTemplate.update("UPDATE customers SET name = ?, email = ?, last_login_at = ? WHERE customer_id = UNHEX(REPLACE(?, '-', ''))",
                 customer.getName(),
                 customer.getEmail(),
                 customer.getLastLoginAt(),
@@ -69,7 +67,7 @@ public class CustomerJdbcTemplateRepository implements CustomerRepository {
     public Optional<Customer> findById(UUID customerId) {
         try{
             Customer customer = jdbcTemplate.queryForObject(
-                    "select * from customers where customer_id = UUID_TO_BIN(?)",
+                    "select * from customers where customer_id = UNHEX(REPLACE(?, '-', ''))",
                     (rs, rowNum) -> rowMapperCustomer(rs),
                     customerId.toString().getBytes());
             return Optional.of(customer);

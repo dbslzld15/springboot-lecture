@@ -1,5 +1,6 @@
 package org.prgrms.kdt;
 
+import org.prgrms.kdt.customer.Customer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,17 +129,55 @@ public class JdbcCustomerRepository {
         return new UUID(byteBuffer.getLong(), byteBuffer.getLong());
     }
 
+    public void transactionTest(Customer customer) {
+        String updateNameSql = "UPDATE customers SET name = ? WHERE customer_id = UUID_TO_BIN(?)";
+        String updateEmailSql = "UPDATE customers SET email = ? WHERE customer_id = UUID_TO_BIN(?)";
+
+        Connection connection = null;
+        try{
+            connection = DriverManager.getConnection("jdbc:mysql://localhost/order_mgmt", "park", "1234");
+            connection.setAutoCommit(false);
+            try(
+                    PreparedStatement updateNameStatement = connection.prepareStatement(updateNameSql);
+                    PreparedStatement updateEmailStatement = connection.prepareStatement(updateEmailSql);
+            ) {
+                updateNameStatement.setString(1, customer.getName());
+                updateNameStatement.setBytes(2, customer.getCustomerId().toString().getBytes());
+                updateNameStatement.executeUpdate();
+
+                updateEmailStatement.setString(1, customer.getEmail());
+                updateEmailStatement.setBytes(2, customer.getCustomerId().toString().getBytes());
+                updateEmailStatement.executeUpdate();
+                connection.commit();
+            }
+        } catch (SQLException e) {
+            if(connection != null) {
+                try {
+                    connection.rollback();
+                    connection.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                    throw new RuntimeException("connection");
+                }
+            }
+            throw new RuntimeException(e);
+        }
+
+    }
+
 
     public static void main(String[] args){
-        JdbcCustomerRepository jdbcCustomerRepository = new JdbcCustomerRepository();
-        int count = jdbcCustomerRepository.deleteAllCustomers();
-        logger.info("deleted count {}", count);
+        JdbcCustomerRepository customerRepository = new JdbcCustomerRepository();
 
-
-        UUID customerId = UUID.randomUUID();
-        logger.info("created customerId -> {}", customerId);
-        jdbcCustomerRepository.insertCustomer(customerId, "new-user2", "dbslzdl153@naver.com");
-        jdbcCustomerRepository.findAllIds().forEach(v -> logger.info("Found name : {}", v));;
+        customerRepository.transactionTest(new Customer(UUID.fromString("809453ab-1d6f-41be-bc34-c31e52b9018a"), "update-user", "db12@naver.com", LocalDateTime.now()));
+//        int count = jdbcCustomerRepository.deleteAllCustomers();
+//        logger.info("deleted count {}", count);
+//
+//
+//        UUID customerId = UUID.randomUUID();
+//        logger.info("created customerId -> {}", customerId);
+//        customerRepository.insertCustomer(customerId, "new-user2", "db12@naver.com");
+//        jdbcCustomerRepository.findAllIds().forEach(v -> logger.info("Found name : {}", v));;
 
     }
 }

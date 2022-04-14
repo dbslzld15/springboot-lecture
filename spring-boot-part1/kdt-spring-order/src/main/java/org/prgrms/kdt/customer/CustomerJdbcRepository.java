@@ -28,7 +28,7 @@ public class CustomerJdbcRepository implements CustomerRepository {
     public Customer insert(Customer customer) {
         try(
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement("insert into customers(customer_id, name, email, created_at) values (UUID_TO_BIN(?), ?, ?, ?)")
+                PreparedStatement statement = connection.prepareStatement("insert into customers(customer_id, name, email, created_at) values (UNHEX(REPLACE(?, '-', '')), ?, ?, ?)")
         ) {
             statement.setBytes(1, customer.getCustomerId().toString().getBytes());
             statement.setString(2, customer.getName());
@@ -49,7 +49,7 @@ public class CustomerJdbcRepository implements CustomerRepository {
     public Customer update(Customer customer) {
         try(
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement("UPDATE customers SET name = ?, email = ?, last_login_at = ? WHERE customer_id = UUID_TO_BIN(?)")
+                PreparedStatement statement = connection.prepareStatement("UPDATE customers SET name = ?, email = ?, last_login_at = ? WHERE customer_id = UNHEX(REPLACE(?, '-', ''))");
         ) {
             statement.setString(1, customer.getName());
             statement.setString(2, customer.getEmail());
@@ -94,7 +94,7 @@ public class CustomerJdbcRepository implements CustomerRepository {
         List<Customer> customers = new ArrayList<>();
         try (
                 Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement("select * from customers where customer_id = UUID_TO_BIN(?)");
+                PreparedStatement statement = connection.prepareStatement("select * from customers where customer_id = UNHEX(REPLACE(?, '-', ''))")
         ) {
             statement.setBytes(1, customerId.toString().getBytes());
             try(ResultSet resultSet = statement.executeQuery()) {
