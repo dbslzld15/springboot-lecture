@@ -1,5 +1,6 @@
 package org.prgrms.kdt.voucher;
 
+import org.prgrms.kdt.aop.TrackTime;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
@@ -20,8 +21,16 @@ public class MemoryVoucherRepository implements VoucherRepository{
     }
 
     @Override
+    @TrackTime
     public Voucher insert(Voucher voucher) {
         storage.put(voucher.getVoucherId(), voucher);
         return voucher;
+    }
+
+    @Override
+    public String toString() {
+        return "MemoryVoucherRepository{" +
+                "storage=" + storage +
+                '}';
     }
 }
