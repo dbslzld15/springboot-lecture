@@ -1,5 +1,8 @@
 package org.prgrms.kdt.customer;
 
+import com.wix.mysql.EmbeddedMysql;
+import com.wix.mysql.config.Charset;
+import com.wix.mysql.config.MysqldConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import javax.sql.DataSource;
@@ -19,6 +24,10 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static com.wix.mysql.EmbeddedMysql.anEmbeddedMysql;
+import static com.wix.mysql.ScriptResolver.classPathScript;
+import static com.wix.mysql.distribution.Version.v5_7_latest;
+import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
 
 @SpringJUnitConfig
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -34,7 +43,7 @@ class CustomerJdbcTemplateRepositoryTest {
         @Bean
         public DataSource dataSource() {
             HikariDataSource dataSource = DataSourceBuilder.create()
-                    .url("jdbc:mysql://localhost/order_mgmt")
+                    .url("jdbc:mysql://localhost:2215/test-order_mgmt")
                     .username("park")
                     .password("1234")
                     .type(HikariDataSource.class)
@@ -51,22 +60,38 @@ class CustomerJdbcTemplateRepositoryTest {
     }
 
     @Autowired
-    CustomerJdbcRepository customerJdbcRepository;
+    CustomerJdbcTemplateRepository customerJdbcRepository;
 
     @Autowired
     DataSource dataSource;
 
     Customer newCustomer;
 
+    EmbeddedMysql embeddedMysql;
+
     @BeforeAll
     void setUp() {
-        customerJdbcRepository.deleteAll();
-        newCustomer = new Customer(UUID.randomUUID(), "test-user", "test-user@gmail.com", LocalDateTime.now());
+        MysqldConfig mysqldConfig = aMysqldConfig(v5_7_latest)
+                .withCharset(Charset.UTF8)
+                .withPort(2215)
+                .withUser("park", "1234")
+                .withTimeZone("Asia/Seoul")
+                .build();
+        embeddedMysql = anEmbeddedMysql(mysqldConfig)
+                .addSchema("test-order_mgmt", classPathScript("schema.sql"))
+                .start();
 
+        newCustomer = new Customer(UUID.randomUUID(), "test-user", "test-user@gmail.com", LocalDateTime.now());
+    }
+
+    @AfterAll
+    void cleanUp() {
+        embeddedMysql.stop();
     }
 
     @Test
     @Order(1)
+    @Disabled
     public void HikariDataSource() throws Exception {
         //given
         //when
