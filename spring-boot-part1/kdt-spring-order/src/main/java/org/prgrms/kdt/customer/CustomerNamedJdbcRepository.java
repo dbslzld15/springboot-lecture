@@ -2,12 +2,11 @@ package org.prgrms.kdt.customer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
 import java.nio.ByteBuffer;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,6 +15,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Repository
+@Primary
 public class CustomerNamedJdbcRepository implements CustomerRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerNamedJdbcRepository.class);
@@ -29,7 +29,7 @@ public class CustomerNamedJdbcRepository implements CustomerRepository {
     @Override
     public Customer insert(Customer customer) {
         Map<String, Object> paramMap = toParamMap(customer);
-        int update = jdbcTemplate.update("insert into customers(customer_id, name, email, created_at) values UNHEX(REPLACE(:customerId, '-', ''), :name, :email, :createdAt)",
+        int update = jdbcTemplate.update("insert into customers(customer_id, name, email, created_at) values (UNHEX(REPLACE(:customerId, '-', '')), :name, :email, :createdAt)",
                 paramMap);
         if(update != 1) {
             throw new RuntimeException("Nothing was inserted");
@@ -99,6 +99,17 @@ public class CustomerNamedJdbcRepository implements CustomerRepository {
             return Optional.empty();
         }
     }
+
+//    public void testTransaction(Customer customer) {
+//        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+//            @Override
+//            protected void doInTransactionWithoutResult(TransactionStatus status) {
+//                jdbcTemplate.update("UPDATE customers SET name = :name where customer_id = UNHEX(REPLACE(:customerId, '-', ''))", toParamMap(customer));
+//                jdbcTemplate.update("UPDATE customers SET email = :email where customer_id = UNHEX(REPLACE(:customerId, '-', ''))", toParamMap(customer));
+//
+//            }
+//        });
+//    }
 
     @Override
     public void deleteAll() {

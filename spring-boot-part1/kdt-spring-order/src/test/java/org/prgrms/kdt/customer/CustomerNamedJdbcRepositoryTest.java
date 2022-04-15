@@ -12,7 +12,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.time.LocalDateTime;
@@ -25,8 +28,7 @@ import static com.wix.mysql.ScriptResolver.classPathScript;
 import static com.wix.mysql.config.MysqldConfig.aMysqldConfig;
 import static com.wix.mysql.distribution.Version.v5_7_latest;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 @SpringJUnitConfig
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -57,13 +59,23 @@ class CustomerNamedJdbcRepositoryTest {
         }
 
         @Bean
+        public PlatformTransactionManager platformTransactionManager(DataSource dataSource) {
+            return new DataSourceTransactionManager(dataSource);
+        }
+
+        @Bean
+        public TransactionTemplate transactionTemplate(PlatformTransactionManager platformTransactionManager) {
+            return new TransactionTemplate(platformTransactionManager);
+        }
+
+        @Bean
         public NamedParameterJdbcTemplate namedParameterJdbcTemplate(JdbcTemplate jdbcTemplate) {
             return new NamedParameterJdbcTemplate(jdbcTemplate);
         }
     }
 
     @Autowired
-    CustomerJdbcTemplateRepository customerJdbcRepository;
+    CustomerNamedJdbcRepository customerJdbcRepository;
 
     @Autowired
     DataSource dataSource;
@@ -159,6 +171,25 @@ class CustomerNamedJdbcRepositoryTest {
 
         Optional<Customer> retrievedCustomer = customerJdbcRepository.findById(newCustomer.getCustomerId());
         assertThat(retrievedCustomer.isEmpty(), is(false));
+    }
+
+    @Test
+    @Order(7)
+    @DisplayName("트랜젝션 테스트")
+    public void testTransaction() throws Exception {
+//        Optional<Customer> prevOne = customerJdbcRepository.findById(newCustomer.getCustomerId());
+//        assertThat(prevOne.isEmpty(), is(false));
+//        Customer newOne = new Customer(UUID.randomUUID(), "a", "a@gmail.com", LocalDateTime.now());
+//        Customer insertedNewOne = customerJdbcRepository.insert(newOne);
+//        customerJdbcRepository.testTransaction(new Customer(
+//                insertedNewOne.getCustomerId(),
+//                "b",
+//                prevOne.get().getEmail(),
+//                LocalDateTime.now()));
+//
+//        Optional<Customer> customer = customerJdbcRepository.findById(insertedNewOne.getCustomerId());
+//        assertThat(customer.isEmpty(), is(false));
+//        assertThat(customer.get(), samePropertyValuesAs(newOne));
     }
 
 }
